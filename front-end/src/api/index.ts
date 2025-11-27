@@ -2,7 +2,7 @@ import axios from 'axios';
 import type {
   ApiResponse,
 } from '@/types/api';
-import { CreationData } from '@/types/common';
+import { CreationsTable, CreationItem, FormForGenerate } from '@/types/common';
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -48,14 +48,13 @@ apiClient.interceptors.response.use(
 );
 
 class ForgeApi {
-  // 获取搜索条件选项
-  async getCreations(status: number = 0, source: string = '', page: number = 1, size: number = 10): Promise<ApiResponse<CreationData>> {
+  async getCreations(status: number = 0, source: string = '', page: number = 1, size: number = 10): Promise<ApiResponse<CreationsTable>> {
     try {
       let requestUrl = `/items?page=${page}&size=${size}&status=${status}`;
       if (source !== '') {
         requestUrl += `&source=${source}`;
       }
-      const response = await apiClient.get<ApiResponse<CreationData>>(requestUrl);
+      const response = await apiClient.get<ApiResponse<CreationsTable>>(requestUrl);
       if (response.status === 200) {
         console.log('ResponseData:', response.data);
         return response.data;
@@ -66,6 +65,112 @@ class ForgeApi {
       throw new Error(`获取作品列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
+
+  async getCreationGenerateInfo(creation_id: string): Promise<ApiResponse<CreationItem>> {
+    try {
+      const response = await apiClient.get<ApiResponse<CreationItem>>(`/creations/${creation_id}/info`);
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`获取作品列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
+  async getCreationGenerateForm(creation_id: string): Promise<ApiResponse<CreationItem>> {
+    try {
+      const response = await apiClient.get<ApiResponse<CreationItem>>(`/creations/${creation_id}/generate_form`);
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`获取作品列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+  
+  async submitCreationGenerate(creation_id: string, form: FormForGenerate): Promise<ApiResponse<null>> {
+    try {
+      const response = await apiClient.put<ApiResponse<null>>(
+        `/creations/generate_form`, 
+        {
+          id: creation_id,
+          form: form
+        }
+      );
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`获取作品列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+  
+  async cannelCreationGenerate(creation_id: string): Promise<ApiResponse<null>> {
+    try {
+      const response = await apiClient.put<ApiResponse<null>>(
+        `/creations/cannel_generate`, 
+        {
+          id: creation_id
+        }
+      );
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`获取作品列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
+  async batchFinishCreation(creation_ids: string[]): Promise<ApiResponse<null>> { 
+    try {
+      const response = await apiClient.put<ApiResponse<null>>(
+        `/creations/batch_finish`, 
+        {
+          ids: creation_ids
+        }
+      );
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`操作失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
+  async batchDeleteCreation(creation_ids: string[]): Promise<ApiResponse<null>> { 
+    try {
+      const response = await apiClient.put<ApiResponse<null>>(
+        `/creations/batch_delete`, 
+        {
+          ids: creation_ids
+        }
+      );
+      if (response.status === 200) {
+        console.log('ResponseData:', response.data);
+        return response.data;
+      } else {
+        throw new Error('请求失败.');
+      }
+    } catch (error) {
+      throw new Error(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
 }
 
 export const forgeApi = new ForgeApi();

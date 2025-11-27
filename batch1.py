@@ -4,6 +4,8 @@ from typing import Dict, List
 import asyncio
 import aiohttp
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import DuplicateKeyError
+
 from src.config import config
 from src.log import logger
 from src.types import CreationItem
@@ -14,11 +16,12 @@ async def get_all_routes() -> Dict[str, str]:
     url = f'{config.DAILY_HOT_API_BASE_URL}/all'
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        async with session.get(url, ssl=False) as response:
             data = await response.json()
 
     code = data.get('code', 500)
     useful_routes = {
+        # 1
         'baidu': None,
         'bilibili': None,
         'douyin': None,
@@ -28,11 +31,34 @@ async def get_all_routes() -> Dict[str, str]:
         'sina': None,
         'tieba': None,
         'toutiao': None,
+        'weibo': None, # error
+        'zhihu': None, # error
+
+        # 2
         'qq-news': None,
         'sina-news': None,
         'netease-news': None,
         'thepaper': None,
         'zhihu-daily': None,
+
+        # 3
+        # 'v2ex': None, # 生活杂谈
+        # 'acfun': None, # 娱乐
+        # 'coolapk': None, # error
+        # '36kr': None, # 科技资讯
+        # 'ifanr': None, # 科技资讯
+        # 'ithome': None, # 数码资讯
+
+        # 4
+        # 'ngabbs': None, # 游戏玩家论坛
+        # 'sspai': None, # 原创为主 小众分享
+        # 'juejin': None, # 科技开发技术
+        # '51cto': None, # 科技开发技术
+        # 'csdn': None, # 科技开发技术
+        # 'jianshu': None, # 文章 不多
+        # 'nodeseek': None, # 二手交易硬件 没啥用
+        # 'weread': None, # 专著电子书阅读 没啥用
+        # 'huxiu': None, # error
     }
 
     if code == 200:
@@ -52,7 +78,7 @@ async def get_top_data_by_path(session: aiohttp.ClientSession, path: str, source
     logger.debug(f'url: {url}')
 
     try:
-        async with session.get(url) as response:
+        async with session.get(url, ssl=False) as response:
             data = await response.json()
 
         code = data.get('code', 500)
@@ -99,14 +125,15 @@ async def save_to_mongodb(collection, top_items: List[CreationItem]):
     """将数据保存到 MongoDB"""
     if not top_items:
         return
-
-    try:
-        documents = [item.model_dump() for item in top_items]
-        result = await collection.insert_many(documents)
-        logger.info(f"Successfully inserted {len(result.inserted_ids)} documents into MongoDB")
-
-    except Exception as e:
-        logger.error(f"Error saving to MongoDB: {e}")
+    for item in top_items:
+        try:
+            result = await collection.insert_one(item.model_dump())
+            if result.inserted_id:
+                logger.info(f"Successfully inserted 1 documents into MongoDB")
+        except DuplicateKeyError as e:
+            logger.warning(f"Failure saving to MongoDB: {e}")
+        except Exception as e:
+            logger.error(f"Error saving to MongoDB: {e}")
 
 
 async def process_single_source(session: aiohttp.ClientSession, collection, source: str, path: str):
@@ -138,7 +165,7 @@ async def main():
         routes = await get_all_routes()
         logger.debug(f"Available routes: {routes}")
 
-        keys_to_process = list(routes.keys())[:10]
+        keys_to_process = list(routes.keys())
         logger.debug(f"Processing keys: {keys_to_process}")
 
         async with aiohttp.ClientSession() as session:

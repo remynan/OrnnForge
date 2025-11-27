@@ -1,22 +1,31 @@
 <script lang="ts" setup>
-import { handleError, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useForgeStore } from '@/stores/forgeStore'
 import { storeToRefs } from 'pinia'
+import { useRoute } from 'vue-router'
+import { visitHomePath } from './utils'
 
 const forgeStore = useForgeStore()
 
 const { showCreationStatus } = storeToRefs(forgeStore)
+
+const route = useRoute()
+
+const current_path = ref(route.path as string)
+
+watch(
+  () => route.path,
+  (newPath) => {
+    current_path.value = newPath
+    console.log('路由已变化:', newPath)
+  }
+)
 
 const handleRaidoGroupChange = async(val: number) => {
   showCreationStatus.value = val
   await forgeStore.fetchCreations()
 }
 
-// 应用启动时的初始化逻辑
-onMounted(async() => {
-  // 这里可以加载应用设置、用户设置等
-  await forgeStore.fetchCreations()
-})
 </script>
 
 <template>
@@ -24,11 +33,11 @@ onMounted(async() => {
     <!-- 应用头部（可选） -->
     <header class="app-header">
       <div class="header-content">
-        <h1 class="app-title">
+        <h1 class="app-title" @click.capture="visitHomePath()">
           <span class="title-main">OrnnForge</span>
           <span class="title-sub">数字内容创作的熔炉</span>
         </h1>
-        <div>
+        <div v-if="current_path == '/web/creations'">
           <el-radio-group
             v-model="showCreationStatus"
             text-color="#626aef"

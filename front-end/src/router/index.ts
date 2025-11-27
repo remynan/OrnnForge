@@ -3,16 +3,24 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    name: 'video-library',
+    path: '/web/creations',
+    name: 'creation-list',
     component: () => import('@/views/CreationList.vue'),
     meta: {
-      title: 'CreationList'
+      title: '作品列表'
+    }
+  },
+  {
+    path: '/web/creation/:id',
+    name: 'creation-info',
+    component: () => import('@/views/CreationInfo.vue'),
+    meta: {
+      title: '作品内容'
     }
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
+    redirect: '/web/creations'
   }
 ]
 

@@ -9,11 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.936.0",
     "@element-plus/icons-vue": "^2.3.2",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@vueuse/core": "^14.0.0",
     "axios": "^1.12.2",
+    "dompurify": "^3.3.0",
     "element-plus": "^2.11.5",
+    "markdown-it": "^14.1.0",
     "pinia": "^3.0.3",
     "unocss": "^66.5.4",
     "unplugin-icons": "^22.5.0",

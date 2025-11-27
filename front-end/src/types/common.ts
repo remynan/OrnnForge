@@ -1,5 +1,5 @@
 
-export interface CreationData {
+export interface CreationsTable {
   items: CreationItem[];
   total: number;
   page: number;
@@ -20,5 +20,18 @@ export interface CreationItem {
   mobileUrl: string;
   create_time: string;
   status: number;
+  formForGenerate: FormForGenerate;
+  result: ResultForGenerate[];
   del_flag: boolean;
+}
+
+export interface FormForGenerate {
+  html: string;
+  type: string;
+  idea: string;
+}
+
+export interface ResultForGenerate {
+  to: string;
+  content: string;
 }
